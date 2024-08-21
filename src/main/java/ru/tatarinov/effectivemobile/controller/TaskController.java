@@ -29,7 +29,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@Tag(name = "Task API")
+@Tag(name = "Task manager API")
 @RequestMapping(value = "/api/task")
 public class TaskController {
     private final TaskService taskService;
