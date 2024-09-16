@@ -12,11 +12,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.tatarinov.effectivemobile.DTO.*;
 import ru.tatarinov.effectivemobile.exception.AuthorizationFailException;
-import ru.tatarinov.effectivemobile.exception.ObjectNotFoundException;
 import ru.tatarinov.effectivemobile.model.Comment;
-import ru.tatarinov.effectivemobile.model.Task;
 import ru.tatarinov.effectivemobile.model.TaskState;
 import ru.tatarinov.effectivemobile.model.User;
+import ru.tatarinov.effectivemobile.service.AuthorizationService;
 import ru.tatarinov.effectivemobile.service.CommentService;
 import ru.tatarinov.effectivemobile.service.TaskService;
 import ru.tatarinov.effectivemobile.service.UserService;
@@ -25,8 +24,6 @@ import ru.tatarinov.effectivemobile.validation.TaskValidation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @Tag(name = "Task manager API")
@@ -35,19 +32,17 @@ public class TaskController {
     private final TaskService taskService;
     private final UserService userService;
     private final CommentService commentService;
-    private final TaskDTOToTaskConverter taskDTOToTaskConverter;
-    private final TaskToTaskDTOResponseConverter taskToTaskDTOResponseConverter;
     private final CommentDTOToCommentConverter commentDTOToCommentConverter;
     private final TaskValidation taskValidation;
+    private final AuthorizationService authorizationService;
 
-    public TaskController(TaskService taskService, UserService userService, CommentService commentService, TaskDTOToTaskConverter taskDTOToTaskConverter, TaskToTaskDTOResponseConverter taskToTaskDTOResponseConverter, CommentDTOToCommentConverter commentDTOToCommentConverter, TaskValidation taskValidation) {
+    public TaskController(TaskService taskService, UserService userService, CommentService commentService, CommentDTOToCommentConverter commentDTOToCommentConverter, TaskValidation taskValidation, AuthorizationService authorizationService) {
         this.taskService = taskService;
         this.userService = userService;
         this.commentService = commentService;
-        this.taskDTOToTaskConverter = taskDTOToTaskConverter;
-        this.taskToTaskDTOResponseConverter = taskToTaskDTOResponseConverter;
         this.commentDTOToCommentConverter = commentDTOToCommentConverter;
         this.taskValidation = taskValidation;
+        this.authorizationService = authorizationService;
     }
 
     @PostMapping(consumes = "application/json")
@@ -57,11 +52,7 @@ public class TaskController {
 
         BindingResultValidation.bindingResultCheck(bindingResult);
 
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.addConverter(taskDTOToTaskConverter);
-        Task task = modelMapper.map(taskDTO, Task.class);
-
-        taskService.createTask(task);
+        taskService.createTask(taskDTO);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
@@ -72,18 +63,13 @@ public class TaskController {
         taskValidation.validate(newTaskDTO, bindingResult);
         BindingResultValidation.bindingResultCheck(bindingResult);
 
-        if (!ownerAuthorization(taskId))
+        if (!authorizationService.ownerAuthorization(taskId))
             throw new AuthorizationFailException("Not enough rights to update this task");
 
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.addConverter(taskDTOToTaskConverter);
-        Task newTask = modelMapper.map(newTaskDTO, Task.class);
 
-        Task updatedTask = taskService.updateTask(taskId, newTask);
-        ModelMapper modelMapperResult = new ModelMapper();
-        modelMapperResult.addConverter(taskToTaskDTOResponseConverter);
-        TaskDTO resultTask = modelMapper.map(updatedTask, TaskDTO.class);
-        return ResponseEntity.ok(resultTask);
+        TaskDTO updatedTaskDTO = taskService.updateTask(taskId, newTaskDTO);
+
+        return ResponseEntity.ok(updatedTaskDTO);
     }
 
 
@@ -91,16 +77,7 @@ public class TaskController {
     @Operation(summary = "Get task by task id", description = "Returns task")
     public ResponseEntity<TaskDTOResponse> getTask(@PathVariable("id") @Parameter(name = "id", description = "task id", example = "1") int id){
 
-        Optional<Task> taskOptional = taskService.getTaskById(id);
-        if (taskOptional.isEmpty())
-            throw new ObjectNotFoundException("Task not found");
-
-        Task task = taskOptional.get();
-
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.addConverter(taskToTaskDTOResponseConverter);
-        TaskDTOResponse taskDTOResponse = modelMapper.map(task, TaskDTOResponse.class);
-
+        TaskDTOResponse taskDTOResponse = taskService.getTaskDTOById(id);
         return ResponseEntity.ok(taskDTOResponse);
     }
 
@@ -110,44 +87,37 @@ public class TaskController {
                                                                     @RequestParam(value = "page", required = false) @Parameter(name = "page", description = "Pagination. Page number. Start from 0", example = "2", required = false) Integer page,
                                                                     @RequestParam(value = "tasks_per_page", required = false) @Parameter(name = "tasks_per_page", description = "Pagination. Tasks per page", example = "2", required = false) Integer tasksPerPage){
 
-        List<Task> taskList = new ArrayList<>();
+        List<TaskDTOResponse> taskDTOResponseList = new ArrayList<>();
         if (page == null || tasksPerPage == null)
-            taskList = taskService.getTaskListByOwnerId(ownerId);
+            taskDTOResponseList = taskService.getTaskDTOListByOwnerId(ownerId);
         else
-            taskList = taskService.getTaskListByOwnerId(ownerId, page, tasksPerPage);
+            taskDTOResponseList = taskService.getTaskDTOListByOwnerId(ownerId, page, tasksPerPage);
 
 
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.addConverter(taskToTaskDTOResponseConverter);
-        List<TaskDTOResponse> taskDTOResponseList = taskList.stream().map(x -> modelMapper.map(x, TaskDTOResponse.class)).collect(Collectors.toList());
 
         return ResponseEntity.ok(taskDTOResponseList);
     }
 
     @GetMapping(value = "/get-by-executor", produces = "application/json")
     @Operation(summary = "Get task by executor id", description = "Returns task list for executor")
-    public ResponseEntity<List<TaskDTO>> getTaskListByExecutor(@RequestParam("id") @Parameter(name = "id", description = "Executor id", example = "1") int executorId,
+    public ResponseEntity<List<TaskDTOResponse>> getTaskListByExecutor(@RequestParam("id") @Parameter(name = "id", description = "Executor id", example = "1") int executorId,
                                                                @RequestParam(value = "page", required = false) @Parameter(name = "page", description = "Pagination. Page number. Start from 0", example = "2", required = false) Integer page,
                                                                @RequestParam(value = "tasks_per_page", required = false) @Parameter(name = "tasks_per_page", description = "Pagination. Tasks per page", example = "2", required = false) Integer tasksPerPage){
 
-        List<Task> taskList = new ArrayList<>();
+        List<TaskDTOResponse> taskDTOResponseList = new ArrayList<>();
         if (page == null || tasksPerPage == null)
-            taskList = taskService.getTaskListByExecutorId(executorId);
+            taskDTOResponseList = taskService.getTaskDTOListByExecutorId(executorId);
         else
-            taskList = taskService.getTaskListByExecutorId(executorId, page, tasksPerPage);
-
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.addConverter(taskToTaskDTOResponseConverter);
-        List<TaskDTO> taskDTOList = taskList.stream().map(x -> modelMapper.map(x, TaskDTO.class)).collect(Collectors.toList());
+            taskDTOResponseList = taskService.getTaskDTOListByExecutorId(executorId, page, tasksPerPage);
 
 
-        return ResponseEntity.ok(taskDTOList);
+        return ResponseEntity.ok(taskDTOResponseList);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete task", description = "Delete task by id")
     public ResponseEntity<HttpStatus> deleteTask (@PathVariable("id") @Parameter(name = "id", description = "Deleting task id", example = "1") int taskId){
-        if (!ownerAuthorization(taskId))
+        if (!authorizationService.ownerAuthorization(taskId))
             throw new AuthorizationFailException("Not enough rights to delete this task");
 
         taskService.deleteTask(taskId);
@@ -158,7 +128,7 @@ public class TaskController {
     @Operation(summary = "Change task status", description = "Changing task status by task id")
     public ResponseEntity<HttpStatus> changeTaskStatus (@RequestParam("id") @Parameter(name = "id", description = "Task id", example = "1") int taskId,
                                                         @RequestParam("task-state") TaskState taskState){
-        if (!ownerAuthorization(taskId))
+        if (!authorizationService.ownerAuthorization(taskId))
             throw new AuthorizationFailException("Not enough rights to update state of this task");
 
         taskService.changeTaskStatus(taskId, taskState);
@@ -169,7 +139,7 @@ public class TaskController {
     @Operation(summary = "Set executor", description = "Set executor id for task")
     public ResponseEntity<HttpStatus> setExecutor (@RequestParam("id") @Parameter(name = "id", description = "Task id", example = "1") int taskId,
                                                    @RequestParam("executor-id") @Parameter(name = "executor-id", description = "Executor id for task", example = "1") int executorId){
-        if (!ownerAuthorization(taskId))
+        if (!authorizationService.ownerAuthorization(taskId))
             throw new AuthorizationFailException("Not enough rights to set executor for this task");
 
         taskService.setExecutor(taskId, executorId);
@@ -182,7 +152,7 @@ public class TaskController {
         BindingResultValidation.bindingResultCheck(bindingResult);
 
         Integer taskId = commentDTO.getTaskId();
-        if (!(ownerAuthorization(taskId) || executorAuthorization(taskId)))
+        if (!(authorizationService.ownerAuthorization(taskId) || authorizationService.executorAuthorization(taskId)))
             throw new AuthorizationFailException("Not enough rights to add comment to this task");
 
 
@@ -198,25 +168,5 @@ public class TaskController {
     }
 
 
-    private boolean ownerAuthorization(int taskId){
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<Task> taskList = taskService.getTaskListByOwnerId(user.getId());
 
-        for (Task task: taskList){
-            if (task.getId() == taskId)
-                return true;
-        }
-        return false;
-    }
-
-    private boolean executorAuthorization(int taskId){
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<Task> taskList = taskService.getTaskListByExecutorId(user.getId());
-
-        for (Task task: taskList){
-            if (task.getId() == taskId)
-                return true;
-        }
-        return false;
-    }
 }

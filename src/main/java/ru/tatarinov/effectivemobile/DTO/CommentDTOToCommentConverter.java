@@ -34,10 +34,7 @@ public class CommentDTOToCommentConverter implements Converter<CommentDTO, Comme
 
 
         if (commentDTO.getTaskId() != null) {
-            Optional<Task> taskOptional = taskService.getTaskById(commentDTO.getTaskId());
-            if (taskOptional.isEmpty())
-                throw new ObjectNotFoundException("Task not found");
-            Task task = taskOptional.get();
+            Task task = taskService.getTaskById(commentDTO.getTaskId());
             comment.setTask(task);
         }
         else

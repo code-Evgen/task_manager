@@ -1,8 +1,10 @@
 package ru.tatarinov.effectivemobile.service;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tatarinov.effectivemobile.DTO.UserDTO;
 import ru.tatarinov.effectivemobile.model.User;
 import ru.tatarinov.effectivemobile.repository.UserRepository;
 
@@ -39,7 +41,10 @@ public class UserService {
     }
 
     @Transactional
-    public void createUser(User user){
+    public void createUser(UserDTO userDTO){
+        ModelMapper requestMapper = new ModelMapper();
+        User user = requestMapper.map(userDTO, User.class);
+
         userRepository.save(user);
     }
 }

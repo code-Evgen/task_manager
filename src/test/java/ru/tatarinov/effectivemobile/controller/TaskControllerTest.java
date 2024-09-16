@@ -106,7 +106,7 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Assert.assertEquals("create test", taskService.getTaskById(4).get().getTitle());
+        Assert.assertEquals("create test", taskService.getTaskDTOById(4).getTitle());
     }
 
     @Test
@@ -240,8 +240,8 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Task task = taskService.getTaskById(1).get();
-        Assert.assertEquals(TaskState.COMPLETED, task.getTaskState());
+        TaskDTOResponse taskDTOResponse = taskService.getTaskDTOById(1);
+        Assert.assertEquals(TaskState.COMPLETED, taskDTOResponse.getTaskState());
     }
 
     @Test
@@ -259,8 +259,8 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Task task = taskService.getTaskById(1).get();
-        Assert.assertEquals(1, task.getExecutor().getId());
+        TaskDTOResponse taskDTOResponse = taskService.getTaskDTOById(1);
+        Assert.assertEquals(1, (int)taskDTOResponse.getExecutorId());
     }
 
     @Test
@@ -283,8 +283,8 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Task task = taskService.getTaskById(1).get();
-        Hibernate.initialize(task);
+        TaskDTOResponse taskDTOResponse = taskService.getTaskDTOById(1);
+        Hibernate.initialize(taskDTOResponse);
         Assert.assertEquals(true, commentService.getComment(1).isPresent());
     }
 
@@ -301,6 +301,6 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Assert.assertEquals(false, taskService.getTaskById(1).isPresent());
+        Assert.assertThrows(ObjectNotFoundException.class, () -> taskService.getTaskDTOById(1));
     }
 }

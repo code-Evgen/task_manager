@@ -76,9 +76,7 @@ public class LoginController {
 
         BindingResultValidation.bindingResultCheck(bindingResult);
 
-        ModelMapper requestMapper = new ModelMapper();
-        User user = requestMapper.map(userDTO, User.class);
-        userService.createUser(user);
+        userService.createUser(userDTO);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }

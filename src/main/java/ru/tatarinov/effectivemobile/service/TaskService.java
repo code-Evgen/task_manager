@@ -1,11 +1,14 @@
 package ru.tatarinov.effectivemobile.service;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
-import org.springframework.data.domain.PageRequest;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tatarinov.effectivemobile.DTO.TaskDTO;
+import ru.tatarinov.effectivemobile.DTO.TaskDTOResponse;
+import ru.tatarinov.effectivemobile.DTO.TaskDTOToTaskConverter;
+import ru.tatarinov.effectivemobile.DTO.TaskToTaskDTOResponseConverter;
 import ru.tatarinov.effectivemobile.exception.ObjectNotFoundException;
 import ru.tatarinov.effectivemobile.model.Task;
 import ru.tatarinov.effectivemobile.model.TaskState;
@@ -15,6 +18,7 @@ import ru.tatarinov.effectivemobile.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,24 +26,64 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
+    private final TaskDTOToTaskConverter taskDTOToTaskConverter;
+    private final TaskToTaskDTOResponseConverter taskToTaskDTOResponseConverter;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, EntityManager entityManager) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, EntityManager entityManager, TaskDTOToTaskConverter taskDTOToTaskConverter, TaskToTaskDTOResponseConverter taskToTaskDTOResponseConverter) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.entityManager = entityManager;
+        this.taskDTOToTaskConverter = taskDTOToTaskConverter;
+        this.taskToTaskDTOResponseConverter = taskToTaskDTOResponseConverter;
     }
 
     @Transactional
-    public void createTask(Task task){
+    public void createTask(TaskDTO taskDTO){
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskDTOToTaskConverter);
+        Task task = modelMapper.map(taskDTO, Task.class);
         taskRepository.save(task);
     }
 
-    public Optional<Task> getTaskById(int id){
+    public Task getTaskById(int id){
         TypedQuery<Task> query = entityManager.createQuery("select t from Task t left join fetch t.owner o left join fetch t.executor e left join fetch t.commentList c WHERE t.id = ?1", Task.class);
         List<Task> taskList = query.setParameter(1, id).getResultList();
         if (taskList.size() == 0)
-            return Optional.empty();
-        return Optional.ofNullable(taskList.get(0));
+            throw new ObjectNotFoundException("Task not found");
+
+        Task task = taskList.get(0);
+
+        return task;
+    }
+
+    public TaskDTOResponse getTaskDTOById(int id){
+        TypedQuery<Task> query = entityManager.createQuery("select t from Task t left join fetch t.owner o left join fetch t.executor e left join fetch t.commentList c WHERE t.id = ?1", Task.class);
+        List<Task> taskList = query.setParameter(1, id).getResultList();
+        if (taskList.size() == 0)
+            throw new ObjectNotFoundException("Task not found");
+
+        Task task = taskList.get(0);
+
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskToTaskDTOResponseConverter);
+        TaskDTOResponse taskDTOResponse = modelMapper.map(task, TaskDTOResponse.class);
+
+        return taskDTOResponse;
+    }
+
+    public List<TaskDTOResponse> getTaskDTOListByOwnerId(int ownerId){
+        Optional<User> ownerOptional = userRepository.findById(ownerId);
+        if (ownerOptional.isEmpty())
+            throw new ObjectNotFoundException("User not found");
+
+        TypedQuery<Task> query = entityManager.createQuery("select t from Task t left join fetch t.owner o left join fetch t.executor e left join fetch t.commentList c WHERE o.id = ?1", Task.class);
+        List<Task> taskList = query.setParameter(1, ownerId).getResultList();
+
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskToTaskDTOResponseConverter);
+        List<TaskDTOResponse> taskDTOResponseList = taskList.stream().map(x -> modelMapper.map(x, TaskDTOResponse.class)).collect(Collectors.toList());
+
+        return taskDTOResponseList;
     }
 
     public List<Task> getTaskListByOwnerId(int ownerId){
@@ -52,7 +96,7 @@ public class TaskService {
         return taskList;
     }
 
-    public List<Task> getTaskListByOwnerId(int ownerId, int page, int tasksPerPage){
+    public List<TaskDTOResponse> getTaskDTOListByOwnerId(int ownerId, int page, int tasksPerPage){
         Optional<User> ownerOptional = userRepository.findById(ownerId);
         if (ownerOptional.isEmpty())
             throw new ObjectNotFoundException("User not found");
@@ -62,10 +106,15 @@ public class TaskService {
                 .setMaxResults(tasksPerPage)
                 .setFirstResult(page * tasksPerPage)
                 .getResultList();
-        return taskList;
+
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskToTaskDTOResponseConverter);
+        List<TaskDTOResponse> taskDTOResponseList = taskList.stream().map(x -> modelMapper.map(x, TaskDTOResponse.class)).collect(Collectors.toList());
+
+        return taskDTOResponseList;
     }
 
-    public List<Task> getTaskListByExecutorId(int executorId){
+    public List<TaskDTOResponse> getTaskDTOListByExecutorId(int executorId){
         Optional<User> executorOptional = userRepository.findById(executorId);
         if (executorOptional.isEmpty())
             throw new ObjectNotFoundException("User not found");
@@ -73,10 +122,16 @@ public class TaskService {
 
         TypedQuery<Task> query = entityManager.createQuery("select t from Task t left join fetch t.owner o left join fetch t.executor e left join fetch t.commentList c WHERE e.id = ?1", Task.class);
         List<Task> taskList = query.setParameter(1, executorId).getResultList();
-        return taskList;
+
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskToTaskDTOResponseConverter);
+        List<TaskDTOResponse> taskDTOList = taskList.stream().map(x -> modelMapper.map(x, TaskDTOResponse.class)).collect(Collectors.toList());
+
+
+        return taskDTOList;
     }
 
-    public List<Task> getTaskListByExecutorId(int executorId, int page, int tasksPerPage){
+    public List<TaskDTOResponse> getTaskDTOListByExecutorId(int executorId, int page, int tasksPerPage){
         Optional<User> executorOptional = userRepository.findById(executorId);
         if (executorOptional.isEmpty())
             throw new ObjectNotFoundException("User not found");
@@ -86,6 +141,23 @@ public class TaskService {
                 .setMaxResults(tasksPerPage)
                 .setFirstResult(page * tasksPerPage)
                 .getResultList();
+
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskToTaskDTOResponseConverter);
+        List<TaskDTOResponse> taskDTOList = taskList.stream().map(x -> modelMapper.map(x, TaskDTOResponse.class)).collect(Collectors.toList());
+
+
+        return taskDTOList;
+    }
+
+    public List<Task> getTaskListByExecutorId(int executorId){
+        Optional<User> executorOptional = userRepository.findById(executorId);
+        if (executorOptional.isEmpty())
+            throw new ObjectNotFoundException("User not found");
+
+        TypedQuery<Task> query = entityManager.createQuery("select t from Task t left join fetch t.owner o left join fetch t.executor e left join fetch t.commentList c WHERE e.id = ?1", Task.class);
+        List<Task> taskList = query.setParameter(1, executorId).getResultList();
+
         return taskList;
     }
 
@@ -123,7 +195,11 @@ public class TaskService {
     }
 
     @Transactional
-    public Task updateTask(int taskId, Task newTask) {
+    public TaskDTO updateTask(int taskId, TaskDTO newTaskDTO) {
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(taskDTOToTaskConverter);
+        Task newTask = modelMapper.map(newTaskDTO, Task.class);
+
         Optional<Task> taskOptional = taskRepository.findById(taskId);
         if (taskOptional.isEmpty())
             throw new ObjectNotFoundException("Task not found");
@@ -135,6 +211,11 @@ public class TaskService {
         task.setTaskState(newTask.getTaskState());
         task.setOwner(newTask.getOwner());
         task.setExecutor(newTask.getExecutor());
-        return task;
+
+        ModelMapper modelMapperResult = new ModelMapper();
+        modelMapperResult.addConverter(taskToTaskDTOResponseConverter);
+        TaskDTO resultTaskDTO = modelMapper.map(task, TaskDTO.class);
+
+        return resultTaskDTO;
     }
 }
