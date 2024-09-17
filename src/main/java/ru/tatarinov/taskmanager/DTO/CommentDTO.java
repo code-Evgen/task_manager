@@ -8,9 +8,9 @@ public class CommentDTO {
     @Schema(name = "text", example = "new comment for task", required = true)
     private String text;
 
-    @NotNull(message = "field is required")
-    @Schema(name = "taskId", example = "1", required = true)
-    private Integer taskId;
+//    @NotNull(message = "field is required")
+//    @Schema(name = "taskId", example = "1", required = true)
+//    private Integer taskId;
 
     public CommentDTO() {
     }
@@ -20,16 +20,16 @@ public class CommentDTO {
     }
 
 
-    public Integer getTaskId() {
-        return taskId;
-    }
+//    public Integer getTaskId() {
+//        return taskId;
+//    }
 
     public void setText(String text) {
         this.text = text;
     }
 
 
-    public void setTaskId(Integer taskId) {
-        this.taskId = taskId;
-    }
+//    public void setTaskId(Integer taskId) {
+//        this.taskId = taskId;
+//    }
 }

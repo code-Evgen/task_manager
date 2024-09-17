@@ -8,8 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.tatarinov.taskmanager.DTO.*;
-import ru.tatarinov.taskmanager.exception.AuthorizationFailException;
+import ru.tatarinov.taskmanager.DTO.CommentDTOToCommentConverter;
+import ru.tatarinov.taskmanager.DTO.TaskDTO;
+import ru.tatarinov.taskmanager.DTO.TaskDTOResponse;
+import ru.tatarinov.taskmanager.aop.Authorization;
+import ru.tatarinov.taskmanager.aop.AuthorizationType;
 import ru.tatarinov.taskmanager.model.TaskState;
 import ru.tatarinov.taskmanager.service.*;
 import ru.tatarinov.taskmanager.util.BindingResultValidation;
@@ -51,13 +54,14 @@ public class TaskController {
 
     @PutMapping(consumes = "application/json", produces = "application/json")
     @Operation(summary = "Update task data", description = "Updates and returns updated task data")
+    @Authorization(type = AuthorizationType.OWNER)
     public ResponseEntity<TaskDTO> updateTask(@RequestParam("id") @Parameter(name = "id", description = "updating task id", example = "1", required = true) int taskId,
                                               @RequestBody() @Valid TaskDTO newTaskDTO, BindingResult bindingResult){
         taskValidation.validate(newTaskDTO, bindingResult);
         BindingResultValidation.bindingResultCheck(bindingResult);
 
-        if (!authorizationService.ownerAuthorization(taskId))
-            throw new AuthorizationFailException("Not enough rights to update this task");
+//        if (!authorizationService.ownerAuthorization(taskId))
+//            throw new AuthorizationFailException("Not enough rights to update this task");
 
 
         TaskDTO updatedTaskDTO = taskService.updateTask(taskId, newTaskDTO);
@@ -109,9 +113,10 @@ public class TaskController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete task", description = "Delete task by id")
+    @Authorization(type = AuthorizationType.OWNER)
     public ResponseEntity<HttpStatus> deleteTask (@PathVariable("id") @Parameter(name = "id", description = "Deleting task id", example = "1") int taskId){
-        if (!authorizationService.ownerAuthorization(taskId))
-            throw new AuthorizationFailException("Not enough rights to delete this task");
+//        if (!authorizationService.ownerAuthorization(taskId))
+//            throw new AuthorizationFailException("Not enough rights to delete this task");
 
         taskService.deleteTask(taskId);
         return ResponseEntity.ok(HttpStatus.OK);
@@ -119,10 +124,11 @@ public class TaskController {
 
     @PatchMapping("/set-status")
     @Operation(summary = "Change task status", description = "Changing task status by task id")
+    @Authorization(type = AuthorizationType.OWNER)
     public ResponseEntity<HttpStatus> changeTaskStatus (@RequestParam("id") @Parameter(name = "id", description = "Task id", example = "1") int taskId,
                                                         @RequestParam("task-state") TaskState taskState){
-        if (!authorizationService.ownerAuthorization(taskId))
-            throw new AuthorizationFailException("Not enough rights to update state of this task");
+//        if (!authorizationService.ownerAuthorization(taskId))
+//            throw new AuthorizationFailException("Not enough rights to update state of this task");
 
         taskService.changeTaskStatus(taskId, taskState);
         return ResponseEntity.ok(HttpStatus.OK);
@@ -130,10 +136,11 @@ public class TaskController {
 
     @PatchMapping("/set-executor")
     @Operation(summary = "Set executor", description = "Set executor id for task")
+    @Authorization(type = AuthorizationType.OWNER)
     public ResponseEntity<HttpStatus> setExecutor (@RequestParam("id") @Parameter(name = "id", description = "Task id", example = "1") int taskId,
                                                    @RequestParam("executor-id") @Parameter(name = "executor-id", description = "Executor id for task", example = "1") int executorId){
-        if (!authorizationService.ownerAuthorization(taskId))
-            throw new AuthorizationFailException("Not enough rights to set executor for this task");
+//        if (!authorizationService.ownerAuthorization(taskId))
+//            throw new AuthorizationFailException("Not enough rights to set executor for this task");
 
         taskService.setExecutor(taskId, executorId);
         return ResponseEntity.ok(HttpStatus.OK);

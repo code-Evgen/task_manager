@@ -18,6 +18,8 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.tatarinov.taskmanager.DTO.LoginDTO;
 import ru.tatarinov.taskmanager.DTO.TaskDTO;
 import ru.tatarinov.taskmanager.DTO.TaskDTOResponse;
+import ru.tatarinov.taskmanager.exception.AuthenticationFailException;
+import ru.tatarinov.taskmanager.exception.AuthorizationFailException;
 import ru.tatarinov.taskmanager.exception.ObjectNotFoundException;
 import ru.tatarinov.taskmanager.model.TaskPriority;
 import ru.tatarinov.taskmanager.model.TaskState;
@@ -27,11 +29,12 @@ import ru.tatarinov.taskmanager.service.TaskService;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -151,7 +154,29 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(taskDTO)))
                 .andReturn();
+    }
 
+    @Test
+    @Order(10)
+    void updateTaskAuthorizationFailTest() throws Exception {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setTitle("check_update");
+        taskDTO.setDescription("test task update");
+        taskDTO.setTaskState(TaskState.COMPLETED);
+        taskDTO.setTaskPriority(TaskPriority.HI);
+        taskDTO.setOwnerId(1);
+
+        MvcResult mvcResult = this.mockMvc
+                .perform(
+                        put("/api/task")
+                                .header("Authorization", this.token)
+                                .param("id", "2")
+                                .content(objectMapper.writeValueAsString(taskDTO))
+                                .contentType("application/JSON")
+                )
+                .andDo(print())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AuthorizationFailException))
+                .andReturn();
     }
 
     @Test

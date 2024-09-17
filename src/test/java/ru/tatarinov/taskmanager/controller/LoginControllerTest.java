@@ -20,8 +20,7 @@ import ru.tatarinov.taskmanager.DTO.UserDTO;
 import ru.tatarinov.taskmanager.exception.AuthenticationFailException;
 import ru.tatarinov.taskmanager.service.UserServiceImp;
 
-import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;

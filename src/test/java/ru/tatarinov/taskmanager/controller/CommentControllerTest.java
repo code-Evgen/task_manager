@@ -17,9 +17,11 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.tatarinov.taskmanager.DTO.CommentDTO;
 import ru.tatarinov.taskmanager.DTO.LoginDTO;
 import ru.tatarinov.taskmanager.DTO.TaskDTOResponse;
+import ru.tatarinov.taskmanager.exception.AuthorizationFailException;
 import ru.tatarinov.taskmanager.service.CommentServiceImp;
 import ru.tatarinov.taskmanager.service.TaskService;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -75,7 +77,7 @@ class CommentControllerTest {
     @Order(10)
     void createCommentTest() throws Exception {
         CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setTaskId(1);
+//        commentDTO.setTaskId(1);
         commentDTO.setText("test comment");
 
         Assert.assertEquals(false, commentService.getComment(1).isPresent());
@@ -84,6 +86,7 @@ class CommentControllerTest {
                 .perform(
                         post("/api/comment/add-comment")
                                 .header("Authorization", this.token)
+                                .param("id", "1")
                                 .content(objectMapper.writeValueAsString(commentDTO))
                                 .contentType("application/JSON")
                 )
@@ -94,5 +97,25 @@ class CommentControllerTest {
         TaskDTOResponse taskDTOResponse = taskService.getTaskDTOById(1);
         Hibernate.initialize(taskDTOResponse);
         Assert.assertEquals(true, commentService.getComment(1).isPresent());
+    }
+
+    @Test
+    @Order(10)
+    void createCommentAuthorizationFailTest() throws Exception {
+        CommentDTO commentDTO = new CommentDTO();
+//        commentDTO.setTaskId(1);
+        commentDTO.setText("test comment");
+
+        MvcResult mvcResult = this.mockMvc
+                .perform(
+                        post("/api/comment/add-comment")
+                                .header("Authorization", this.token)
+                                .param("id", "2")
+                                .content(objectMapper.writeValueAsString(commentDTO))
+                                .contentType("application/JSON")
+                )
+                .andDo(print())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AuthorizationFailException))
+                .andReturn();
     }
 }
