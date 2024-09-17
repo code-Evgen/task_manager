@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>ru.tatarinov</groupId>
-    <artifactId>EffectiveMobile</artifactId>
+    <artifactId>TaskManager</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>EffectiveMobile</name>
-    <description>EffectiveMobile</description>
+    <name>TaskManager</name>
+    <description>TaskManager</description>
     <url/>
     <licenses>
         <license/>
