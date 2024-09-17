@@ -18,7 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.tatarinov.taskmanager.DTO.LoginDTO;
 import ru.tatarinov.taskmanager.DTO.UserDTO;
 import ru.tatarinov.taskmanager.exception.AuthenticationFailException;
-import ru.tatarinov.taskmanager.service.UserService;
+import ru.tatarinov.taskmanager.service.UserServiceImp;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +39,7 @@ class LoginControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private UserService userService;
+    private UserServiceImp userService;
     private MockMvc mockMvc;
 
     @BeforeEach

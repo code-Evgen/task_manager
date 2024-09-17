@@ -4,13 +4,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.tatarinov.taskmanager.DTO.UserDTO;
-import ru.tatarinov.taskmanager.service.UserService;
+import ru.tatarinov.taskmanager.service.UserServiceImp;
 
 @Component
 public class RegistrationValidation implements Validator {
-    private final UserService userService;
+    private final UserServiceImp userService;
 
-    public RegistrationValidation(UserService userService) {
+    public RegistrationValidation(UserServiceImp userService) {
         this.userService = userService;
     }
 

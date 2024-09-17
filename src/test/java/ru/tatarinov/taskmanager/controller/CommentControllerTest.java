@@ -17,7 +17,7 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.tatarinov.taskmanager.DTO.CommentDTO;
 import ru.tatarinov.taskmanager.DTO.LoginDTO;
 import ru.tatarinov.taskmanager.DTO.TaskDTOResponse;
-import ru.tatarinov.taskmanager.service.CommentService;
+import ru.tatarinov.taskmanager.service.CommentServiceImp;
 import ru.tatarinov.taskmanager.service.TaskService;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -37,7 +37,7 @@ class CommentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private CommentService commentService;
+    private CommentServiceImp commentService;
     @Autowired
     private TaskService taskService;
     private MockMvc mockMvc;

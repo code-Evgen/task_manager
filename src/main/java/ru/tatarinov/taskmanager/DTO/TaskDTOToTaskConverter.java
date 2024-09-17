@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 import ru.tatarinov.taskmanager.exception.ObjectNotFoundException;
 import ru.tatarinov.taskmanager.model.Task;
 import ru.tatarinov.taskmanager.model.User;
-import ru.tatarinov.taskmanager.service.UserService;
+import ru.tatarinov.taskmanager.service.UserServiceImp;
 
 import java.util.Optional;
 
 @Component
 public class TaskDTOToTaskConverter implements Converter<TaskDTO, Task> {
-    private final UserService userService;
+    private final UserServiceImp userService;
 
-    public TaskDTOToTaskConverter(UserService userService) {
+    public TaskDTOToTaskConverter(UserServiceImp userService) {
         this.userService = userService;
     }
 

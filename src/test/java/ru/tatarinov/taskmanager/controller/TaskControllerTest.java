@@ -21,7 +21,7 @@ import ru.tatarinov.taskmanager.DTO.TaskDTOResponse;
 import ru.tatarinov.taskmanager.exception.ObjectNotFoundException;
 import ru.tatarinov.taskmanager.model.TaskPriority;
 import ru.tatarinov.taskmanager.model.TaskState;
-import ru.tatarinov.taskmanager.service.CommentService;
+import ru.tatarinov.taskmanager.service.CommentServiceImp;
 import ru.tatarinov.taskmanager.service.TaskService;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ class TaskControllerTest {
     @Autowired
     private TaskService taskService;
     @Autowired
-    private CommentService commentService;
+    private CommentServiceImp commentService;
     private MockMvc mockMvc;
     private String token;
 

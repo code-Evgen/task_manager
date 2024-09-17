@@ -20,7 +20,7 @@ import ru.tatarinov.taskmanager.exception.AuthenticationFailException;
 import ru.tatarinov.taskmanager.security.JwtResponse;
 import ru.tatarinov.taskmanager.security.JwtTokenProvider;
 import ru.tatarinov.taskmanager.security.UserDetailsServiceImpl;
-import ru.tatarinov.taskmanager.service.UserService;
+import ru.tatarinov.taskmanager.service.UserServiceImp;
 import ru.tatarinov.taskmanager.util.BindingResultValidation;
 import ru.tatarinov.taskmanager.validation.RegistrationValidation;
 
@@ -28,13 +28,13 @@ import ru.tatarinov.taskmanager.validation.RegistrationValidation;
 @Tag(name = "Login")
 @RequestMapping(value = "/login", consumes = {"application/JSON"}, produces = {"application/JSON", "application/XML"})
 public class LoginController {
-    private final UserService userService;
+    private final UserServiceImp userService;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RegistrationValidation registrationValidation;
 
-    public LoginController(UserService userService, AuthenticationManager authenticationManager, UserDetailsServiceImpl userDetailsService, JwtTokenProvider jwtTokenProvider, RegistrationValidation registrationValidation) {
+    public LoginController(UserServiceImp userService, AuthenticationManager authenticationManager, UserDetailsServiceImpl userDetailsService, JwtTokenProvider jwtTokenProvider, RegistrationValidation registrationValidation) {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;

@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.tatarinov.taskmanager.DTO.*;
 import ru.tatarinov.taskmanager.exception.AuthorizationFailException;
 import ru.tatarinov.taskmanager.model.TaskState;
-import ru.tatarinov.taskmanager.service.AuthorizationService;
-import ru.tatarinov.taskmanager.service.CommentService;
-import ru.tatarinov.taskmanager.service.TaskService;
-import ru.tatarinov.taskmanager.service.UserService;
+import ru.tatarinov.taskmanager.service.*;
 import ru.tatarinov.taskmanager.util.BindingResultValidation;
 import ru.tatarinov.taskmanager.validation.TaskValidation;
 
@@ -26,13 +23,13 @@ import java.util.List;
 @RequestMapping(value = "/api/task")
 public class TaskController {
     private final TaskService taskService;
-    private final UserService userService;
-    private final CommentService commentService;
+    private final UserServiceImp userService;
+    private final CommentServiceImp commentService;
     private final CommentDTOToCommentConverter commentDTOToCommentConverter;
     private final TaskValidation taskValidation;
-    private final AuthorizationService authorizationService;
+    private final AuthorizationServiceImp authorizationService;
 
-    public TaskController(TaskService taskService, UserService userService, CommentService commentService, CommentDTOToCommentConverter commentDTOToCommentConverter, TaskValidation taskValidation, AuthorizationService authorizationService) {
+    public TaskController(TaskServiceImp taskService, UserServiceImp userService, CommentServiceImp commentService, CommentDTOToCommentConverter commentDTOToCommentConverter, TaskValidation taskValidation, AuthorizationServiceImp authorizationService) {
         this.taskService = taskService;
         this.userService = userService;
         this.commentService = commentService;

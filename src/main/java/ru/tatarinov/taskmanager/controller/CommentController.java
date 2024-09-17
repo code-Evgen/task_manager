@@ -17,19 +17,19 @@ import ru.tatarinov.taskmanager.DTO.CommentDTOToCommentConverter;
 import ru.tatarinov.taskmanager.exception.AuthorizationFailException;
 import ru.tatarinov.taskmanager.model.Comment;
 import ru.tatarinov.taskmanager.model.User;
-import ru.tatarinov.taskmanager.service.AuthorizationService;
-import ru.tatarinov.taskmanager.service.CommentService;
+import ru.tatarinov.taskmanager.service.AuthorizationServiceImp;
+import ru.tatarinov.taskmanager.service.CommentServiceImp;
 import ru.tatarinov.taskmanager.util.BindingResultValidation;
 
 @RestController
 @Tag(name = "Comment manager API")
 @RequestMapping(value = "/api/comment")
 public class CommentController {
-    private final AuthorizationService authorizationService;
+    private final AuthorizationServiceImp authorizationService;
     private final CommentDTOToCommentConverter commentDTOToCommentConverter;
-    private final CommentService commentService;
+    private final CommentServiceImp commentService;
 
-    public CommentController(AuthorizationService authorizationService, CommentDTOToCommentConverter commentDTOToCommentConverter, CommentService commentService) {
+    public CommentController(AuthorizationServiceImp authorizationService, CommentDTOToCommentConverter commentDTOToCommentConverter, CommentServiceImp commentService) {
         this.authorizationService = authorizationService;
         this.commentDTOToCommentConverter = commentDTOToCommentConverter;
         this.commentService = commentService;
