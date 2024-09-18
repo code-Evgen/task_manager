@@ -81,7 +81,7 @@ public class TaskController {
     @GetMapping(value = "/get-by-owner", produces = "application/json")
     @Operation(summary = "Get task by owner id", description = "Returns task list for owner")
     public ResponseEntity<List<TaskDTOResponse>> getTaskListByOwner(@RequestParam("id") @Parameter(name = "id", description = "Owner id", example = "1") int ownerId,
-                                                                    @RequestParam(value = "page", required = false) @Parameter(name = "page", description = "Pagination. Page number. Start from 0", example = "2", required = false) Integer page,
+                                                                    @RequestParam(value = "page", required = false) @Parameter(name = "page", description = "Pagination. Page number. Start from 0", example = "0", required = false) Integer page,
                                                                     @RequestParam(value = "tasks_per_page", required = false) @Parameter(name = "tasks_per_page", description = "Pagination. Tasks per page", example = "2", required = false) Integer tasksPerPage){
 
         List<TaskDTOResponse> taskDTOResponseList = new ArrayList<>();
@@ -98,7 +98,7 @@ public class TaskController {
     @GetMapping(value = "/get-by-executor", produces = "application/json")
     @Operation(summary = "Get task by executor id", description = "Returns task list for executor")
     public ResponseEntity<List<TaskDTOResponse>> getTaskListByExecutor(@RequestParam("id") @Parameter(name = "id", description = "Executor id", example = "1") int executorId,
-                                                               @RequestParam(value = "page", required = false) @Parameter(name = "page", description = "Pagination. Page number. Start from 0", example = "2", required = false) Integer page,
+                                                               @RequestParam(value = "page", required = false) @Parameter(name = "page", description = "Pagination. Page number. Start from 0", example = "0", required = false) Integer page,
                                                                @RequestParam(value = "tasks_per_page", required = false) @Parameter(name = "tasks_per_page", description = "Pagination. Tasks per page", example = "2", required = false) Integer tasksPerPage){
 
         List<TaskDTOResponse> taskDTOResponseList = new ArrayList<>();

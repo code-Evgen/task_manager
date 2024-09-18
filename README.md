@@ -15,7 +15,7 @@
 - файл "docker-compose.yml" (корень проекта)
 - файл "dockerfile" (корень проекта)
 - директория "\dockerDatabase" со всем содержимым
-- файл \target\EffectiveMobile-0.0.1-SNAPSHOT.jar
+- файл \target\TaskManager-0.0.1-SNAPSHOT.jar
 
 ### Запуск приложения
 
@@ -24,7 +24,7 @@
 
 Swagger доступен по адресу http://localhost:8080/swagger-ui/index.html
 
-Для запуска приложения из Intellij IDEA запустить EffectiveMobileApplication.
+Для запуска приложения из Intellij IDEA запустить TaskManagerApplication.
 
 
 ### Конфигурация
