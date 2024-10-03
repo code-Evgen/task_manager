@@ -3,6 +3,9 @@ package ru.tatarinov.taskmanager.service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.tatarinov.taskmanager.DTO.TaskDTO;
@@ -42,9 +45,16 @@ public class TaskServiceImp implements TaskService{
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addConverter(taskDTOToTaskConverter);
         Task task = modelMapper.map(taskDTO, Task.class);
+        createTask(task);
+    }
+
+    @Transactional
+    @CachePut(value = "task", key = "#task.id")
+    public void createTask(Task task){
         taskRepository.save(task);
     }
 
+    @Cacheable(value = "task", unless = "#result == null")
     public Task getTaskById(int id){
         TypedQuery<Task> query = entityManager.createQuery("select t from Task t left join fetch t.owner o left join fetch t.executor e left join fetch t.commentList c WHERE t.id = ?1", Task.class);
         List<Task> taskList = query.setParameter(1, id).getResultList();
@@ -162,6 +172,7 @@ public class TaskServiceImp implements TaskService{
     }
 
     @Transactional
+    @CacheEvict(value = "task", key = "#taskId")
     public void deleteTask(int taskId){
         taskRepository.deleteById(taskId);
     }
